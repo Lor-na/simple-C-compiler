@@ -31,6 +31,7 @@ void yyerror(const char*);
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
+%type <node> declaration declaration_specifiers init_declarator_list init_declarator type_specifier declarator direct_declarator
 %type <node> program translation_unit
 
 %nonassoc LOWER_THAN_ELSE
@@ -181,29 +182,59 @@ constant_expression
 declaration
 	: declaration_specifiers ';'
 	| declaration_specifiers init_declarator_list ';'
+	{
+		root = new treeNode("declaration");
+		root->addChild($1);
+		root->addChild($2);
+	}
 	;
 
 /*定义前缀*/
 declaration_specifiers
 	/*typedef*/
 	: storage_class_specifier
+	{
+		$$ = NULL;
+	}
 	| storage_class_specifier declaration_specifiers
+	{
+		$$ = NULL;
+	}
 	/*int char double*/
 	| type_specifier
+	{
+		$$ = new treeNode("declaration_specifiers");
+		$$->addChild($1);
+	}
 	| type_specifier declaration_specifiers
+	{
+		$$ = NULL;
+	}
 	/*const*/
 	| type_qualifier
+	{
+		$$ = NULL;
+	}
 	| type_qualifier declaration_specifiers
+	{
+		$$ = NULL;
+	}
 	;
 
 init_declarator_list
 	: init_declarator
+	{
+		$$ = $1;
+	}
 	| init_declarator_list ',' init_declarator
 	;
 
 /*单个变量，有可能带有赋值 如 int a=0*/
 init_declarator
 	: declarator
+	{
+		$$ = $1;
+	}
 	| declarator '=' initializer
 	;
 
@@ -218,17 +249,53 @@ storage_class_specifier
 /*变量类型*/
 type_specifier
 	: VOID
+	{
+		$$ = NULL;
+	}
 	| CHAR
+	{
+		$$ = NULL;
+	}
 	| SHORT
+	{
+		$$ = NULL;
+	}
 	| INT
+	{
+		$$ = new treeNode("int");
+	}
 	| LONG
+	{
+		$$ = NULL;
+	}
 	| FLOAT
+	{
+		$$ = NULL;
+	}
 	| DOUBLE
+	{
+		$$ = NULL;
+	}
 	| SIGNED
+	{
+		$$ = NULL;
+	}
 	| UNSIGNED
+	{
+		$$ = NULL;
+	}
 	| struct_or_union_specifier
+	{
+		$$ = NULL;
+	}
 	| enum_specifier
+	{
+		$$ = NULL;
+	}
 	| TYPE_NAME
+	{
+		$$ = NULL;
+	}
 	;
 
 struct_or_union_specifier
@@ -253,7 +320,13 @@ struct_declaration
 
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
+	{
+		$1 = NULL;
+	}
 	| type_specifier
+	{
+		$1 = NULL;
+	}
 	| type_qualifier specifier_qualifier_list
 	| type_qualifier
 	;
@@ -265,8 +338,14 @@ struct_declarator_list
 
 struct_declarator
 	: declarator
+	{
+		$1 = NULL;
+	}
 	| ':' constant_expression
 	| declarator ':' constant_expression
+	{
+		$1 = NULL;
+	}
 	;
 
 enum_specifier
@@ -292,18 +371,45 @@ type_qualifier
 
 declarator
 	: pointer direct_declarator
+	{
+		$$ = NULL;
+	}
 	| direct_declarator
+	{
+		$$ = $1;
+	}
 	;
 
 /*变量——普通变量 数组 ()是函数的参数列表 int f(int a)*/
 direct_declarator
 	: IDENTIFIER
+	{
+		$$ = new treeNode("hhlskdjf");
+	}
 	| '(' declarator ')'
+	{
+		$$ = NULL;
+	}
 	| direct_declarator '[' constant_expression ']'
+	{
+		$$ = NULL;
+	}
 	| direct_declarator '[' ']'
+	{
+		$$ = NULL;
+	}
 	| direct_declarator '(' parameter_type_list ')'
+	{
+		$$ = NULL;
+	}
 	| direct_declarator '(' identifier_list ')'
+	{
+		$$ = NULL;
+	}
 	| direct_declarator '(' ')'
+	{
+		$$ = NULL;
+	}
 	;
 
 pointer
@@ -331,8 +437,16 @@ parameter_list
 
 parameter_declaration
 	: declaration_specifiers declarator
+	{
+	}
 	| declaration_specifiers abstract_declarator
+	{
+
+	}
 	| declaration_specifiers
+	{
+
+	}
 	;
 
 identifier_list
@@ -404,6 +518,7 @@ compound_statement
 
 declaration_list
 	: declaration
+	{}
 	| declaration_list declaration
 	;
 
@@ -440,14 +555,15 @@ jump_statement
 
 program
 	: translation_unit{
-		root = new treeNode("program");
-		root->addchild($1);
-	}
+		// root = new treeNode("program");
+		// root->addChild($1);
+		// cout << "here" << endl;
+	} 
 	;
 /*程序起始*/
 translation_unit
 	: external_declaration{
-		$$ = new treeNode("translation_unit");
+		// $$ = new treeNode("translation_unit");
 	}
 	| translation_unit external_declaration
 	;
@@ -456,15 +572,20 @@ translation_unit
 external_declaration
 	: function_definition
 	| declaration
+	{}
 	;
 /*函数定义*/
 function_definition
 	/*declaration_list 不知道在这里是干嘛的*/
 	: declaration_specifiers declarator declaration_list compound_statement
+	{}
 	/*int f (int a) {}*/
 	| declaration_specifiers declarator compound_statement
+	{}
 	| declarator declaration_list compound_statement
+	{}
 	| declarator compound_statement
+	{}
 	;
 
 %%
@@ -482,7 +603,7 @@ int main(int argc,char* argv[]) {
 	
 	yyparse();
 
-	treePrint(root);
+	root->treePrint();
 
 	printf("\n");
 

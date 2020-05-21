@@ -10,7 +10,8 @@ public:
 	vector<treeNode*> children;
 	treeNode *parent;
 
-	treeNode(char *token);
+	treeNode(const char *token);
+	treeNode(string token);
 
 	void addChild(treeNode* child);
 	// and set child's parent at the same time

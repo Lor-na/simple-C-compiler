@@ -1,6 +1,12 @@
 #include "tree.h"
 
-treeNode::treeNode(char* token){
+treeNode::treeNode(const char* token){
+	this->token.assign(token);
+	this->parent = NULL;
+}
+
+treeNode::treeNode(string token){
+	this->token.assign(token);
 	this->parent = NULL;
 }
 
