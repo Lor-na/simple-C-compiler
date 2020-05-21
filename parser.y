@@ -602,10 +602,10 @@ int main(int argc,char* argv[]) {
 	yyin = fopen(argv[1],"r");
 	
 	yyparse();
-
-	root->treePrint();
-
+	
 	printf("\n");
+	
+	root->treePrint(0);
 
 	fclose(yyin);
 	return 0;

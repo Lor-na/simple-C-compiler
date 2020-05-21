@@ -16,6 +16,6 @@ public:
 	void addChild(treeNode* child);
 	// and set child's parent at the same time
 
-	void treePrint();
+	void treePrint(int temp_height);
 };
 
