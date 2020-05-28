@@ -25,7 +25,12 @@ class Initializer;
 
 // compound statement
 class Block;
+
+// statement
 class ExpStm;
+class SelectStm;
+
+// expression
 class AssignExp;
 class UnaryExp;
 class BinaryExp;
@@ -160,12 +165,12 @@ public:
     // bool checkSemantics() override;
 };
 
-class Block : public Base {
+class Block : public Stm {
 public:
     vector<Dec*> dec;
     vector<Stm*> stm;
 
-    Block() : Base(N_BLOCK) {}
+    Block() : Stm(N_BLOCK) {}
     
     void addStm(Stm *);
     void addDec(Dec *);
@@ -189,6 +194,26 @@ public:
     // virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
+
+class SelectStm : public Stm{
+public:
+    Exp* condition;
+    Stm* if_do;     // maybe normal statement, maybe a block. can be distinguished by if_do->node_type == N_BLOCK
+    Stm* else_do;   // the same as if_do and else_do maybe nullptr
+
+    SelectStm(Exp* _cond, Stm* _if_do, Stm* _else_do) : Stm(N_SELECT_STM), condition(_cond), if_do(_if_do), else_do(_else_do) {}
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+// class CaseStm : public Stm{
+// public:
+//     Exp* condition;
+
+// };
 
 class AssignExp : public Exp {
 public:

@@ -12,6 +12,8 @@
 
 // stm class from 20-39
 #define N_EXP_STM 20
+#define N_SELECT_STM 21
+#define N_CASE_STM 22
 
 // exp class from 40-59
 #define N_ASSIGN_EXP 40

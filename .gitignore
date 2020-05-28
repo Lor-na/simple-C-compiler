@@ -3,6 +3,6 @@ lex.yy.c
 new.parser.tab.c
 new.parser.tab.h
 new.parser.clean.y
-test.c
+test.out
 *.exe
 *.md

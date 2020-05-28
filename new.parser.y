@@ -75,7 +75,7 @@ tree::Program* ast_root;
 
 %type <type> type_specifier
 
-%type <stm> statement
+%type <stm> statement selection_statement
 
 %type <expStm> expression_statement expression
 
@@ -521,11 +521,13 @@ statement:
 	labeled_statement {
 	}
 	| compound_statement {
+		$$ = $1;
 	}
 	| expression_statement{
 		$$ = $1;
 	}
 	| selection_statement {
+		$$ = $1;
 	}
 	| iteration_statement {
 	}
@@ -593,11 +595,13 @@ expression_statement:
 
 //条件语句
 selection_statement:
-	IF '(' expression ')' statement %prec LOWER_THAN_ELSE {
+	IF '(' assignment_expression ')' statement %prec LOWER_THAN_ELSE {
+		$$ = new SelectStm($3, $5, nullptr);
 	}
-    | IF '(' expression ')' statement ELSE statement {
+    | IF '(' assignment_expression ')' statement ELSE statement {
+		$$ = new SelectStm($3, $5, $7);
 	}
-    | SWITCH '(' expression ')' statement {
+    | SWITCH '(' assignment_expression ')' statement {
 	}
     ;
 

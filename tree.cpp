@@ -114,6 +114,21 @@ void ExpStm::print(int temp_height) {
     }
 }
 
+void SelectStm::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Select Statement" << endl;
+    // print condition
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|\t" << "|---" << "Condition:" << endl;
+    this->condition->print(temp_height + 1);
+    // print blocks
+    this->if_do->print(temp_height + 1);
+    if(this->else_do != nullptr)
+        this->else_do->print(temp_height + 1);
+}
+
 void AssignExp::print(int temp_height) {
     for(int i = 0; i < temp_height; i++)
         cout << "|\t";
