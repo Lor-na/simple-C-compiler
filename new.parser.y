@@ -13,6 +13,7 @@ extern char yytext[];
 extern int column;
 extern FILE * yyin;
 extern FILE * yyout;
+extern string text;
 
 int yylex(void);
 void yyerror(const char*); 
@@ -88,7 +89,7 @@ program:
 /*基本表达式*/
 primary_expression: 
 	IDENTIFIER {
-		string id = yytext;
+		string id = text;
 		$$ = new VariableExp(id);
 	}
 	|
@@ -98,9 +99,9 @@ primary_expression:
 	FALSE {
 	}
 	| CONSTANT_INT {
-		int num = atoi(yytext);
+		int num = atoi(text.c_str());
 		Value* v = new Value();
-		v->base_type = 0;
+		v->base_type = V_INT;
 		v->val.integer_value = num;
 		$$ = new ConstantExp(v);
 	}
@@ -384,7 +385,7 @@ type_specifier:
 
 declarator:
 	IDENTIFIER {
-		string id = yytext;
+		string id = text;
 		$$ = new Declarator(D_ID, id);
 	}
 	| '(' declarator ')' {
@@ -400,7 +401,7 @@ declarator:
 	| declarator '(' identifier_list ')' {
 	}
 	| declarator '(' ')' {
-		string id = yytext;
+		string id = text;
 		$$ = new Declarator(D_ID, id);
 	}
 	;
@@ -545,7 +546,7 @@ block_item_list:
 		$$ = $1;
 		if($2->node_type == N_DEC){
 			$$->addDec((Dec *)$2);
-		} else if(isStm($1)) {
+		} else if(isStm($2)) {
 			$$->addStm((Stm *)$2);
 		} else {
 			cout << "Error! Wrong Node Type! of block_item_list" << endl;
@@ -674,6 +675,8 @@ int main(int argc,char* argv[]) {
 	yyin = fopen(argv[1],"r");
 	
 	yyparse();
+
+	ast_root->print(0);
 
 	fclose(yyin);
 	return 0;

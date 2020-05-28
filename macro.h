@@ -51,16 +51,8 @@
 #define OP_INC 18
 #define OP_DEC 19
 
-bool isStm(Base *b){
-	if(b->node_type >= 20 && b->node_type < 40)
-		return true;
-	else
-		return false;
-}
-
-bool isExp(Base *b) {
-	if(b->node_type >= 40 && b->node_type < 60)
-		return true;
-	else
-		return false;
-}
+#define V_INT 0
+#define V_DOUBLE 1
+#define V_CHAR 2
+#define V_BOOL 3
+#define V_STRING 4

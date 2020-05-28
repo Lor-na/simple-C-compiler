@@ -1,7 +1,7 @@
-
 %{
 #include "new.parser.tab.h"
 #include <cstdlib>
+#include <string>
 #include <iostream>
 using namespace std;
 
@@ -9,6 +9,7 @@ void count(void);
 void comment();
 int check_type();
 int column = 0;
+string text;
 
 %}
 
@@ -44,11 +45,11 @@ IS          ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 "true"			{ count(); return(TRUE); }
 "false"			{ count(); return(FALSE); }
 
-{L}({L}|{D})* 	{count(); return(check_type());/*IDENTIFIER*/ }
+{L}({L}|{D})* 	{count(); text = yytext; return(check_type());/*IDENTIFIER*/ }
 
 0[xX]{H}+{IS}?	{ count(); return(CONSTANT_INT); /*16进制*/}
 0[0-7]*{IS}?	{ count(); return(CONSTANT_INT); /*8进制*/}
-[1-9]{D}*{IS}?	{ count(); return(CONSTANT_INT); /*10进制*/}
+[1-9]{D}*{IS}?	{ count(); text = yytext; return(CONSTANT_INT); /*10进制*/}
 L?'(\\.|[^\\'\n])+'		{ count(); return(CONSTANT); }
 
 {D}+{E}{FS}?				{ count(); return(CONSTANT_DOUBLE); /*浮点数*/}
@@ -59,7 +60,7 @@ L?'(\\.|[^\\'\n])+'		{ count(); return(CONSTANT); }
 0[xX]{H}+"."{H}*{P}?{FS}?   { count(); return(CONSTANT); }
 
 
-L?\"(\\.|[^\\"\n])*\"	{ count(); return(STRING_LITERAL); /*字符串常量*/}
+L?\"(\\.|[^\\"\n])*\"	{ count();text = yytext; return(STRING_LITERAL); /*字符串常量*/}
 
 ">>="	{ count(); return(RIGHT_ASSIGN); }
 "<<="	{ count(); return(LEFT_ASSIGN); }
