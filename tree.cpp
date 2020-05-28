@@ -129,6 +129,32 @@ void SelectStm::print(int temp_height) {
         this->else_do->print(temp_height + 1);
 }
 
+void SwitchStm::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Switch Statement" << endl;
+    // cond
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|\t" << "|---" << "Condition:" << endl;
+    this->condition->print(temp_height + 1);
+    // statements
+    this->body->print(temp_height + 1);
+}
+
+void CaseStm::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Case Statement" << endl;
+    // value
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|\t" << "|---" << "Condition:" << endl;
+    this->value->print(temp_height + 1);
+    // condition
+    this->if_do->print(temp_height + 1);
+}
+
 void AssignExp::print(int temp_height) {
     for(int i = 0; i < temp_height; i++)
         cout << "|\t";

@@ -41,6 +41,7 @@ tree::Program* ast_root;
 	Initializer* init;
 	Block *block;
 	ExpStm *expStm;
+	CaseStm *caseStm;
 	AssignExp *assignExp;
 	UnaryExp *unaryExp;
 	BinaryExp *binaryExp;
@@ -78,6 +79,7 @@ tree::Program* ast_root;
 %type <stm> statement selection_statement
 
 %type <expStm> expression_statement expression
+%type <caseStm> labeled_statement
 
 %type <declarator> declarator
 
@@ -538,8 +540,10 @@ statement:
 //标签声明
 labeled_statement:
 	IDENTIFIER ':' statement {
+
 	}
 	| CASE logical_or_expression ':' statement {
+		$$ = new CaseStm($2, $4);
 	}
 	;
 
@@ -602,6 +606,7 @@ selection_statement:
 		$$ = new SelectStm($3, $5, $7);
 	}
     | SWITCH '(' assignment_expression ')' statement {
+		$$ = new SwitchStm($3, $5);
 	}
     ;
 

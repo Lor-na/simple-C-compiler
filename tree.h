@@ -29,6 +29,8 @@ class Block;
 // statement
 class ExpStm;
 class SelectStm;
+class SwitchStm;
+class CaseStm;
 
 // expression
 class AssignExp;
@@ -209,11 +211,31 @@ public:
     // bool checkSemantics() override;
 };
 
-// class CaseStm : public Stm{
-// public:
-//     Exp* condition;
+class SwitchStm : public Stm{
+public:
+    Exp* condition;
+    Stm* body;  // must be a block
 
-// };
+    SwitchStm(Exp* _cond, Stm* _body) : Stm(N_SWITCH_STM), condition(_cond), body(_body) {}
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class CaseStm : public Stm {
+public:
+    Exp* value;
+    Stm* if_do;
+
+    CaseStm(Exp* _value, Stm* _if_do) : Stm(N_CASE_STM), value(_value), if_do(_if_do) {}
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
 
 class AssignExp : public Exp {
 public:
