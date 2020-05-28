@@ -1,25 +1,33 @@
 #include "tree.h"
 
-treeNode::treeNode(const char* token){
-	this->token.assign(token);
-	this->parent = NULL;
+using namespace tree;
+using namespace std;
+
+void Program::addFunc(FuncDec * func) {
+	this->func_dec.push_back(func);
+} 
+
+void Program::addDec(Dec * dec) {
+	this->dec.push_back(dec);
+} 
+
+void Dec::setType(Type *type) {
+	this->type = type;
 }
 
-treeNode::treeNode(string token){
-	this->token.assign(token);
-	this->parent = NULL;
+void Dec::addDeclarator(Declarator *declarator) {
+	this->declarators.push_back(declarator);
 }
 
-void treeNode::treePrint(int temp_height){
-	for(int i = 0; i < temp_height; i++)
-		cout << "|\t";
-	cout << "|---" << this->token << endl;
-	for(int i = 0; i < this->children.size(); i++){
-		this->children[i]->treePrint(temp_height + 1);
-	}
+void Block::addDec(Dec *dec) {
+	this->dec.push_back(dec);
 }
 
-void treeNode::addChild(treeNode* child){
-	this->children.push_back(child);
-	child->parent = this;
+void Block::addStm(Stm *stm){
+	this->stm.push_back(stm);
 }
+
+void ExpStm::addExp(Exp * exp) {
+	this->exps.push_back(exp);
+}
+

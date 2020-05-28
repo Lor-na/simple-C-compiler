@@ -1,6 +1,7 @@
 lex.yy.c
-parser.tab.c
-parser.tab.h
+new.parser.tab.c
+new.parser.tab.h
+new.parser.clean.y
 test.c
 *.exe
 *.md
