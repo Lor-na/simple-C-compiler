@@ -7,6 +7,8 @@
 #define N_TYPE_DEF 5
 #define N_DECLARATOR 6
 #define N_BLOCK 7
+#define N_DEC_ITEM 8
+#define N_INITIAL 9
 
 // stm class from 20-39
 #define N_EXP_STM 20
@@ -23,6 +25,9 @@
 #define N_VALUE 51
 
 #define D_ID 0
+
+#define I_EXP 0
+#define I_ARRAY 1
 
 #define T_INTEGER 0
 #define T_DOUBLE 1

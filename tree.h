@@ -20,6 +20,8 @@ class Program;
 class FuncDec;
 class Dec;
 class Declarator;
+class DecItem;
+class Initializer;
 
 // compound statement
 class Block;
@@ -101,12 +103,43 @@ public:
 class Dec : public Base {
 public:
     Type *type;
-    vector<Declarator*> declarators;
+    vector<DecItem*> dec_list;
 
     Dec() : Base(N_DEC), type() {}
 
     void setType(Type *);
-    void addDeclarator(Declarator *);
+    void addDecItem(DecItem *);
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class DecItem : public Base{
+public:
+    Declarator * declarator;
+    Initializer * initializer;
+
+    DecItem(Declarator *_declarator, Initializer *_initializer) : Base(N_DEC_ITEM), declarator(_declarator), initializer(_initializer) {}
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class Initializer : public Base {
+public:
+    int init_type;  // I_EXP:assignment expression; I_ARRAY:such as {1,2,3}
+    // A union should be used here, but i can't give it a right construction function
+    // assign_exp and assign_array, only one of them will be used 
+    Exp* assign_exp;
+    vector<Initializer *> assign_array;
+
+    Initializer(int _init_type) : Base(N_INITIAL), init_type(_init_type) {}
+
+    void addArrayItem(Initializer *);
 
     virtual void print(int temp_height);
 

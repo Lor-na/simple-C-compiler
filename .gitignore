@@ -1,3 +1,4 @@
+.vscode
 lex.yy.c
 new.parser.tab.c
 new.parser.tab.h

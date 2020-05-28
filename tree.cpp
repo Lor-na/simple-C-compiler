@@ -15,8 +15,12 @@ void Dec::setType(Type *type) {
 	this->type = type;
 }
 
-void Dec::addDeclarator(Declarator *declarator) {
-	this->declarators.push_back(declarator);
+void Dec::addDecItem(DecItem *dec_item) {
+	this->dec_list.push_back(dec_item);
+}
+
+void Initializer::addArrayItem(Initializer *init_item) {
+    this->assign_array.push_back(init_item);
 }
 
 void Block::addDec(Dec *dec) {
@@ -56,8 +60,30 @@ void Dec::print(int temp_height) {
         cout << "|\t";
     cout << "|---" << "Variable Declaration" << endl;
     this->type->print(temp_height + 1);
-    for(int i = 0; i < this->declarators.size(); i++){
-        this->declarators[i]->print(temp_height + 1);
+    for(int i = 0; i < this->dec_list.size(); i++){
+        this->dec_list[i]->print(temp_height + 1);
+    }
+}
+
+void DecItem::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Declaration Item" << endl;
+    this->declarator->print(temp_height + 1);
+    if(this->initializer != nullptr)
+        this->initializer->print(temp_height + 1);
+}
+
+void Initializer::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Initializer" << endl;
+    if(this->init_type == I_EXP){
+        this->assign_exp->print(temp_height + 1);
+    }else{
+        for(int i = 0; i < this->assign_array.size(); i++){
+            this->assign_array[i]->print(temp_height + 1);
+        }
     }
 }
 

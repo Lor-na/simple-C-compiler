@@ -22,6 +22,11 @@ tree::Program* ast_root;
 
 %}
 
+%code requires{
+	#include "tree.h"
+	using namespace tree;
+}
+
 %start program
 
 %union{
@@ -32,6 +37,8 @@ tree::Program* ast_root;
 	FuncDec* funcDec;
 	Dec* dec;
 	Declarator* declarator;
+	DecItem* decItem;
+	Initializer* init;
 	Block *block;
 	ExpStm *expStm;
 	AssignExp *assignExp;
@@ -60,7 +67,11 @@ tree::Program* ast_root;
 %type <exp> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <exp> assignment_expression
 
-%type <dec> declaration init_declarator_list 
+%type <dec> declaration init_declarator_list
+
+%type <decItem> init_declarator
+
+%type <init> initializer initializer_list
 
 %type <type> type_specifier
 
@@ -68,7 +79,7 @@ tree::Program* ast_root;
 
 %type <expStm> expression_statement expression
 
-%type <declarator> declarator init_declarator
+%type <declarator> declarator
 
 %type <block> compound_statement block_item_list
 
@@ -230,7 +241,7 @@ equality_expression:
 		$$ = new BinaryExp(OP_EQUAL, $1, $3);
 	}
 	| equality_expression NE_OP relational_expression {
-		$$ = new BinaryExp(OP_NOT_EQUAL, $1, $3)
+		$$ = new BinaryExp(OP_NOT_EQUAL, $1, $3);
 	}
 	;
 
@@ -346,18 +357,20 @@ declaration:
 init_declarator_list:
 	init_declarator {
 		$$ = new Dec();
+		$$->addDecItem($1);
 	}
 	| init_declarator_list ',' init_declarator {
 		$$ = $1;
-		$$->addDeclarator($3);
+		$$->addDecItem($3);
 	}
 	;
 
 init_declarator:
 	declarator {
-		$$ = $1;
+		$$ = new DecItem($1, nullptr);
 	}
 	| declarator '=' initializer {
+		$$ = new DecItem($1, $3);
 	}
 	;
 
@@ -459,8 +472,11 @@ abstract_declarator:
 //初始化
 initializer:
 	assignment_expression {
+		$$ = new Initializer(I_EXP);
+		$$->assign_exp = $1;
 	}
 	| '{' initializer_list '}' {
+		$$ = $2;
 	}
 	| '{' initializer_list ',' '}' {
 	}
@@ -468,10 +484,14 @@ initializer:
 
 initializer_list:
 	initializer {
+		$$ = new Initializer(I_ARRAY);
+		$$->addArrayItem($1);
 	}
 	| designation initializer {
 	}
 	| initializer_list ',' initializer {
+		$$ = $1;
+		$$->addArrayItem($3);
 	}
 	| initializer_list ',' designation initializer {
 	}
