@@ -192,14 +192,12 @@ public:
 
 class DeclaratorFunc : public Declarator{
 public:
-    ParaList *para_def;     // para_def or para_call can be distinguished by d_type: D_FUNC_DEF or D_FUNC_CALL
-    IDList *para_call;      // if D_FUNC_EMPTY: no parameters at all.
+    ParaList *para_def;     // para_def:D_FUNC_DEF if D_FUNC_EMPTY: no parameters at all.
 
     DeclaratorFunc(int _d_type, const string &_name) : Declarator(_d_type, _name) {}
 
     virtual void print(int temp_height);
     void setParaDef(ParaList *);
-    void setParaCall(IDList *);
 
     // virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
@@ -416,6 +414,34 @@ public:
     string name;
     VariableExp(const string &_name) : Exp(N_VARIABLE_EXP), name(_name) {}
 
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class ArrayExp : public Exp {
+public:
+    string name;
+    vector<Stm*> index;
+
+    ArrayExp(const string &_name) : Exp(N_ARRAY_EXP), name(_name) {}
+
+    void addIndex(Stm *);
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class FuncExp : public Exp {
+public:
+    string name;
+    vector<Exp*> argu; // vector may be empty: no argument.
+
+    FuncExp(const string &_name) : Exp(N_FUNC_EXP), name(_name) {}
+
+    void addArgu(Exp *);
     virtual void print(int temp_height);
 
     // virtual llvm::Value *codeGen(CodeGenContext *context) override;

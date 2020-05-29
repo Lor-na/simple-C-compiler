@@ -29,9 +29,12 @@
 #define N_PRIMARY_EXP 43
 #define N_VARIABLE_EXP 44
 #define N_CONSTANT_EXP 45
+#define N_ARRAY_EXP 46
+#define N_FUNC_EXP 47
 
 #define N_TYPE 50
 #define N_VALUE 51
+
 
 // declarator
 #define D_ID 0

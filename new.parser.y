@@ -34,6 +34,7 @@ tree::Program* ast_root;
 	Base *base;
 	Stm* stm;
 	Exp* exp;
+	FuncExp *funcExp;
 	FuncDec* funcDec;
 	Dec* dec;
 	Declarator* declarator;
@@ -67,10 +68,11 @@ tree::Program* ast_root;
 
 %token ';' ',' ':' '=' '[' ']' '.' '&' '!' '~' '-' '+' '*' '/' '%' '<' '>' '^' '|' '?' '{' '}' '(' ')'
 
-%type <exp> primary_expression postfix_expression argument_expression_list unary_expression unary_operator
+%type <exp> primary_expression postfix_expression unary_expression unary_operator
 %type <exp> multiplicative_expression additive_expression shift_expression relational_expression equality_expression
 %type <exp> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <exp> assignment_expression
+%type <funcExp> argument_expression_list
 
 %type <dec> declaration init_declarator_list
 %type <decItem> init_declarator
@@ -137,21 +139,50 @@ postfix_expression:
 		$$ = $1;
 	}
 	| 	postfix_expression '[' expression ']'{
+		// array call
+		if($1->node_type == N_VARIABLE_EXP){
+			$$ = new ArrayExp(((VariableExp *)$1)->name);
+			delete($1);
+		} else {
+			$$ = $1;
+		}
+		((ArrayExp*)$$)->addIndex($3);
 	}
 	| 	postfix_expression '(' ')'{
+		// may be function call
+		if($1->node_type == N_VARIABLE_EXP){
+			$$ = new FuncExp(((VariableExp *)$1)->name);
+			delete($1);
+		} else {
+			cout << "Error, positfix_expression (), can't be nested" << endl;
+		}
 	}
 	| 	postfix_expression '(' argument_expression_list ')'{
+		// absolutely function call
+		if($1->node_type == N_VARIABLE_EXP){
+			$$ = $3;
+			((FuncExp*)$$)->name = ((VariableExp*)$1)->name;
+			delete($1);
+		} else {
+			cout << "Error, positfix_expression (argument_expression_list), can't be nested" << endl;
+		}
 	}
 	| 	postfix_expression INC_OP{
+		$$ = new UnaryExp(OP_INC, $1);
 	}
 	| 	postfix_expression DEC_OP{
+		$$ = new UnaryExp(OP_DEC, $1);
 	}
 	;
 
 argument_expression_list:
 	assignment_expression{
+		$$ = new FuncExp("placement");
+		$$->addArgu($1);
 	}
 	| 	argument_expression_list ',' assignment_expression {
+		$$ = $1;
+		$$->addArgu($3);
 	}
 	;
 
@@ -445,13 +476,7 @@ declarator:
 		((DeclaratorFunc*)$$)->setParaDef($3);
 	}
 	| declarator '(' identifier_list ')' {
-		if($1->d_type == D_ID) {
-			$$ = new DeclaratorFunc(D_FUNC_CALL, $1->name);
-			delete($1);
-		} else {
-			cout << "Error node type of declarator () " << endl;
-		}
-		((DeclaratorFunc*)$$)->setParaCall($3);
+		cout << "using identifier_list" << endl;
 	}
 	| declarator '(' ')' {
 		if($1->d_type == D_ID) {

@@ -31,10 +31,6 @@ void DeclaratorFunc::setParaDef(ParaList *p){
     this->para_def = p;
 }
 
-void DeclaratorFunc::setParaCall(IDList *i){
-    this->para_call = i;
-}
-
 void ParaList::addPara(ParaItem *item) {
     this->para.push_back(item);
 }
@@ -61,6 +57,14 @@ void ExpStm::addExp(Exp * exp) {
 
 void JumpStm::setReturnVal(Stm* stm) {
     this->return_exp = stm;
+}
+
+void ArrayExp::addIndex(Stm *stm) {
+    this->index.push_back(stm);
+}
+
+void FuncExp::addArgu(Exp *exp) {
+    this->argu.push_back(exp);
 }
 
 void Program::print(int temp_height) {
@@ -137,8 +141,6 @@ void DeclaratorFunc::print(int temp_height) {
     cout << "|---" << this->name << "  declarator type:  " << this->d_type << endl;
     if(this->d_type == D_FUNC_DEF) {
         this->para_def->print(temp_height + 1);
-    } else if(this->d_type == D_FUNC_CALL) {
-        this->para_call->print(temp_height + 1);
     }
 }
 
@@ -308,6 +310,24 @@ void VariableExp::print(int temp_height) {
     for(int i = 0; i < temp_height; i++)
         cout << "|\t";
     cout << "|---" << "Variable  " << this->name << endl;
+}
+
+void ArrayExp::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Array  " << this->name << endl;
+    for(int i = 0; i < this->index.size(); i++){
+        this->index[i]->print(temp_height + 1);
+    }
+}
+
+void FuncExp::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Func  " << this->name << endl;
+    for(int i = 0; i < this->argu.size(); i++){
+        this->argu[i]->print(temp_height + 1);
+    }
 }
 
 void Type::print(int temp_height) {
