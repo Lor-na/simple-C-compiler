@@ -15,6 +15,9 @@
 #define N_SELECT_STM 21
 #define N_SWITCH_STM 22
 #define N_CASE_STM 23
+#define N_WHILE_STM 24
+#define N_FOR_STM 25
+#define N_JUMP_STM 26
 
 // exp class from 40-59
 #define N_ASSIGN_EXP 40
@@ -64,3 +67,7 @@
 #define V_CHAR 2
 #define V_BOOL 3
 #define V_STRING 4
+
+#define J_CONTINUE 0
+#define J_BREAK 1
+#define J_RETURN 2

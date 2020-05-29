@@ -42,6 +42,7 @@ tree::Program* ast_root;
 	Block *block;
 	ExpStm *expStm;
 	CaseStm *caseStm;
+	JumpStm *jumpStm;
 	AssignExp *assignExp;
 	UnaryExp *unaryExp;
 	BinaryExp *binaryExp;
@@ -76,10 +77,11 @@ tree::Program* ast_root;
 
 %type <type> type_specifier
 
-%type <stm> statement selection_statement
+%type <stm> statement selection_statement iteration_statement
 
 %type <expStm> expression_statement expression
 %type <caseStm> labeled_statement
+%type <jumpStm> jump_statement
 
 %type <declarator> declarator
 
@@ -591,6 +593,7 @@ block_item:
 
 expression_statement:
 	';' {
+		$$ = new ExpStm();
 	}
 	| expression ';' {
 		$$ = $1;
@@ -613,16 +616,22 @@ selection_statement:
 //循环语句
 iteration_statement:
 	WHILE '(' expression ')' statement {
+		$$ = new WhileStm($3, $5, false);
 	}
 	| DO statement WHILE '(' expression ')' ';' {
+		$$ = new WhileStm($5, $2, true);
 	}
 	| FOR '(' expression_statement expression_statement ')' statement {
+		$$ = new ForStm($3, $4, nullptr, $6);
 	}
 	| FOR '(' expression_statement expression_statement expression ')' statement {
+		$$ = new ForStm($3, $4, $5, $7);
 	}
 	| FOR '(' declaration expression_statement ')' statement {
+		$$ = new ForStm($3, $4, nullptr, $6);
 	}
 	| FOR '(' declaration expression_statement expression ')' statement {
+		$$ = new ForStm($3, $4, $5, $7);
 	}
 	;
 
@@ -631,12 +640,17 @@ jump_statement:
 	GOTO IDENTIFIER ';' {
 	}
 	| CONTINUE ';' {
+		$$ = new JumpStm(J_CONTINUE);
 	}
 	| BREAK ';' {
+		$$ = new JumpStm(J_BREAK);
 	}
 	| RETURN ';' {
+		$$ = new JumpStm(J_RETURN);
 	}
 	| RETURN expression ';' {
+		$$ = new JumpStm(J_RETURN);
+		$$->setReturnVal($2);
 	}
 	;
 

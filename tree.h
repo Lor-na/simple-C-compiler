@@ -31,6 +31,9 @@ class ExpStm;
 class SelectStm;
 class SwitchStm;
 class CaseStm;
+class WhileStm;
+class ForStm;
+class JumpStm;
 
 // expression
 class AssignExp;
@@ -185,7 +188,7 @@ public:
 
 class ExpStm : public Stm{
 public:
-    vector <Exp *> exps;
+    vector <Exp *> exps;    // length = 0 means emtpy expression
 
     ExpStm() : Stm(N_EXP_STM) {}
 
@@ -213,10 +216,10 @@ public:
 
 class SwitchStm : public Stm{
 public:
-    Exp* condition;
+    Exp* cond;
     Stm* body;  // must be a block
 
-    SwitchStm(Exp* _cond, Stm* _body) : Stm(N_SWITCH_STM), condition(_cond), body(_body) {}
+    SwitchStm(Exp* _cond, Stm* _body) : Stm(N_SWITCH_STM), cond(_cond), body(_body) {}
 
     virtual void print(int temp_height);
 
@@ -230,6 +233,51 @@ public:
     Stm* if_do;
 
     CaseStm(Exp* _value, Stm* _if_do) : Stm(N_CASE_STM), value(_value), if_do(_if_do) {}
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class WhileStm : public Stm{
+public:
+    Stm* cond;      // ExpStm type. use the last element in vector as exp return value.
+    Stm* body;
+    bool do_first;  // True: do_while statement; False: while statement
+
+    WhileStm(Stm* _cond, Stm* _body, bool _do_first) : Stm(N_WHILE_STM), cond(_cond), body(_body), do_first(_do_first) {}
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class ForStm : public Stm{
+public:
+    Base* init;     // maybe Stm* or Dec*
+    Stm *cond, *iter;   // iter maybe nullptr
+    Stm *body;
+
+    ForStm(Base* _init, Stm* _cond, Stm* _iter, Stm* _body) : Stm(N_FOR_STM), init(_init), cond(_cond), iter(_iter), body(_body) {}
+
+    virtual void print(int temp_height);
+
+    bool initIsDec(); // to distinguish init(Base*), which can be Stm* or Dec*
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class JumpStm : public Stm{
+public:
+    int jump_type;
+    Stm* return_exp;
+
+    JumpStm(int _type) : Stm(N_JUMP_STM), jump_type(_type) {this->return_exp = nullptr;}
+
+    void setReturnVal(Stm *);
 
     virtual void print(int temp_height);
 

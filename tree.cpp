@@ -35,6 +35,10 @@ void ExpStm::addExp(Exp * exp) {
 	this->exps.push_back(exp);
 }
 
+void JumpStm::setReturnVal(Stm* stm) {
+    this->return_exp = stm;
+}
+
 void Program::print(int temp_height) {
     for(int i = 0; i < temp_height; i++)
         cout << "|\t";
@@ -137,7 +141,7 @@ void SwitchStm::print(int temp_height) {
     for(int i = 0; i < temp_height; i++)
         cout << "|\t";
     cout << "|\t" << "|---" << "Condition:" << endl;
-    this->condition->print(temp_height + 1);
+    this->cond->print(temp_height + 1);
     // statements
     this->body->print(temp_height + 1);
 }
@@ -153,6 +157,50 @@ void CaseStm::print(int temp_height) {
     this->value->print(temp_height + 1);
     // condition
     this->if_do->print(temp_height + 1);
+}
+
+void WhileStm::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "While Statement  ";
+    if(this->do_first){
+        cout << "do_while" << endl;
+    }else{
+        cout << "while" << endl;
+    }
+    // cond
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|\t" << "|---" << "Condition:" << endl;
+    this->cond->print(temp_height + 1);
+    // body
+    this->body->print(temp_height + 1);
+}
+
+void ForStm::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "For Statement" << endl;
+    this->init->print(temp_height + 1);
+    this->cond->print(temp_height + 1);
+    if(this->iter != nullptr)
+        this->iter->print(temp_height + 1);
+    this->body->print(temp_height + 1);
+}
+
+void JumpStm::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "Jump Statement   ";
+    switch(this->jump_type){
+        case J_BREAK: cout << "break"; break;
+        case J_CONTINUE: cout << "continue"; break;
+        case J_RETURN: cout << "return"; break;
+    }
+    cout << endl;
+    if(this->return_exp != nullptr){
+        this->return_exp->print(temp_height + 1);
+    }
 }
 
 void AssignExp::print(int temp_height) {
@@ -213,6 +261,17 @@ void Value::print(int temp_height) {
         default:
             cout << "Error index of union." << endl;
     }
+}
+
+bool ForStm::initIsDec(){
+    if(this->init->node_type == N_DEC){
+        return true;
+    } else if(isStm(this->init)){
+        return false;
+    } else {
+        cout << "Wrong node type of init in For statement" << endl;
+    }
+    return false;
 }
 
 bool tree::isStm(Base *b){
