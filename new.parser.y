@@ -38,6 +38,9 @@ tree::Program* ast_root;
 	Dec* dec;
 	Declarator* declarator;
 	DecItem* decItem;
+	ParaList* paraList;
+	ParaItem* paraItem;
+	IDList* idList;
 	Initializer* init;
 	Block *block;
 	ExpStm *expStm;
@@ -70,8 +73,10 @@ tree::Program* ast_root;
 %type <exp> assignment_expression
 
 %type <dec> declaration init_declarator_list
-
 %type <decItem> init_declarator
+%type <paraList> parameter_list
+%type <paraItem> parameter_declaration
+%type <idList> identifier_list
 
 %type <init> initializer initializer_list
 
@@ -402,24 +407,59 @@ type_specifier:
 
 declarator:
 	IDENTIFIER {
+		// variable
 		string id = text;
 		$$ = new Declarator(D_ID, id);
 	}
 	| '(' declarator ')' {
 	}
 	| declarator '[' assignment_expression ']' {
+		// array of fixed size
+		if($1->d_type == D_ID){
+			$$ = new DeclaratorArray(D_ARRAY, $1->name);
+			delete($1);
+		} else {
+			$$ = $1;
+		}
+		((DeclaratorArray *)$$)->addArraySize($3);
 	}
 	| declarator '[' '*' ']' {
 	}
 	| declarator '[' ']' {
+		// array of unfixed size : defined by initializer
+		if($1->d_type == D_ID){
+			$$ = new DeclaratorArray(D_ARRAY, $1->name);
+			delete($1);
+		} else {
+			$$ = $1;
+		}
+		((DeclaratorArray*)$$)->addArraySize(nullptr);
 	}
 	| declarator '(' parameter_list ')' {
+		if($1->d_type == D_ID) {
+			$$ = new DeclaratorFunc(D_FUNC_DEF, $1->name);
+			delete($1);
+		} else {
+			cout << "Error node type of declarator () " << endl;
+		}
+		((DeclaratorFunc*)$$)->setParaDef($3);
 	}
 	| declarator '(' identifier_list ')' {
+		if($1->d_type == D_ID) {
+			$$ = new DeclaratorFunc(D_FUNC_CALL, $1->name);
+			delete($1);
+		} else {
+			cout << "Error node type of declarator () " << endl;
+		}
+		((DeclaratorFunc*)$$)->setParaCall($3);
 	}
 	| declarator '(' ')' {
-		string id = text;
-		$$ = new Declarator(D_ID, id);
+		if($1->d_type == D_ID) {
+			$$ = new DeclaratorFunc(D_FUNC_EMPTY, $1->name);
+			delete($1);
+		} else {
+			cout << "Error node type of declarator () " << endl;
+		}
 	}
 	;
 
@@ -427,13 +467,18 @@ declarator:
 //参数列表
 parameter_list:
 	parameter_declaration {
+		$$ = new ParaList();
+		$$->addPara($1);
 	}
 	| parameter_list ',' parameter_declaration {
+		$$ = $1;
+		$$->addPara($3);
 	}
 	;
 
 parameter_declaration:
 	type_specifier declarator {
+		$$ = new ParaItem($1, $2);
 	}
 	| type_specifier abstract_declarator {
 	}
@@ -443,8 +488,16 @@ parameter_declaration:
 
 identifier_list:
 	IDENTIFIER {
+		string id = text;
+		VariableExp* e = new VariableExp(id);
+		$$ = new IDList();
+		$$->addID(e);
 	}
 	| identifier_list ',' IDENTIFIER {
+		string id = text;
+		VariableExp* e = new VariableExp(id);
+		$$ = $1;
+		$$->addID(e);
 	}
 	;
 
@@ -534,8 +587,10 @@ statement:
 		$$ = $1;
 	}
 	| iteration_statement {
+		$$ = $1;
 	}
 	| jump_statement {
+		$$ = $1;
 	}
 	;
 
@@ -692,7 +747,7 @@ function_definition:
 	}
 	| type_specifier declarator compound_statement {
 		// maybe check declarator
-		$$ = new FuncDec($2->name, $1, $3);
+		$$ = new FuncDec($2->name, $1, $2, $3);
 	}
 	;
 

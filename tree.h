@@ -20,6 +20,11 @@ class Program;
 class FuncDec;
 class Dec;
 class Declarator;
+class DeclaratorArray;
+class DeclaratorFunc;
+class IDList;
+class ParaList;
+class ParaItem;
 class DecItem;
 class Initializer;
 
@@ -96,10 +101,11 @@ public:
     // vector<Type *> args_type;
     // vector <string> args_name;
     // vector<bool> args_is_formal_parameters; //true:&, false:local
+    Declarator *para;
     Type *return_type; // procedure == nullptr
     Block* block;
     
-    FuncDec(const string &_name, Type *_type, Block *_block) : Base(N_FUNC_DEC), name(_name), return_type(_type), block(_block) {}
+    FuncDec(const string &_name, Type *_type, Declarator *_para, Block *_block) : Base(N_FUNC_DEC), name(_name), para(_para), return_type(_type), block(_block) {}
     // void addArgs(const string &, Type *, bool);
     // void setReturnType(Type *);
     // void addBlock(Block *);
@@ -159,10 +165,80 @@ public:
 
 class Declarator : public Base{
 public:
-    int d_type;
+    int d_type;     // see macro.h
     string name;
-
+    
     Declarator(int _d_type, const string &_name) : Base(N_DECLARATOR), d_type(_d_type), name(_name){}
+
+    virtual void print(int temp_height);
+    void setDType(int);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class DeclaratorArray : public Declarator{
+public:
+    vector<Exp*> array_size;    // support multi-dimension, declarating order remains.
+
+    DeclaratorArray(int _d_type, const string &_name) : Declarator(_d_type, _name) {}
+    
+    virtual void print(int temp_height);
+    void addArraySize(Exp *);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class DeclaratorFunc : public Declarator{
+public:
+    ParaList *para_def;     // para_def or para_call can be distinguished by d_type: D_FUNC_DEF or D_FUNC_CALL
+    IDList *para_call;      // if D_FUNC_EMPTY: no parameters at all.
+
+    DeclaratorFunc(int _d_type, const string &_name) : Declarator(_d_type, _name) {}
+
+    virtual void print(int temp_height);
+    void setParaDef(ParaList *);
+    void setParaCall(IDList *);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+
+};
+
+class IDList : public Base{
+public:
+    vector<Exp*> id;    // must be VariableExp
+
+    IDList() : Base(N_ID_LIST) {}
+
+    void addID(Exp *);
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class ParaList: public Base{
+public:
+    vector<ParaItem*> para;
+
+    ParaList() : Base(N_PARA_LIST) {}
+
+    void addPara(ParaItem *);
+
+    virtual void print(int temp_height);
+
+    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    // bool checkSemantics() override;
+};
+
+class ParaItem: public Base{
+public:
+    Type *type;
+    Declarator* var;
+
+    ParaItem(Type *_type, Declarator *_var) : Base(N_PARA_ITEM), type(_type), var(_var) {}
 
     virtual void print(int temp_height);
 

@@ -19,6 +19,30 @@ void Dec::addDecItem(DecItem *dec_item) {
 	this->dec_list.push_back(dec_item);
 }
 
+void Declarator::setDType(int t) {
+    this->d_type = t;
+}
+
+void DeclaratorArray::addArraySize(Exp* exp) {
+    this->array_size.push_back(exp);
+}
+
+void DeclaratorFunc::setParaDef(ParaList *p){
+    this->para_def = p;
+}
+
+void DeclaratorFunc::setParaCall(IDList *i){
+    this->para_call = i;
+}
+
+void ParaList::addPara(ParaItem *item) {
+    this->para.push_back(item);
+}
+
+void IDList::addID(Exp *exp){
+    this->id.push_back(exp);
+}
+
 void Initializer::addArrayItem(Initializer *init_item) {
     this->assign_array.push_back(init_item);
 }
@@ -56,6 +80,7 @@ void FuncDec::print(int temp_height) {
         cout << "|\t";
     cout << "|---" << this->name << endl;
     this->return_type->print(temp_height + 1);
+    this->para->print(temp_height + 1);
     this->block->print(temp_height + 1);
 }
 
@@ -95,6 +120,52 @@ void Declarator::print(int temp_height) {
     for(int i = 0; i < temp_height; i++)
         cout << "|\t";
     cout << "|---" << this->name << "  declarator type:  " << this->d_type << endl;
+}
+
+void DeclaratorArray::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << this->name << "  declarator type:  " << this->d_type << endl;
+    for(int i = 0; i < this->array_size.size(); i++){
+        this->array_size[i]->print(temp_height + 1);
+    }
+}
+
+void DeclaratorFunc::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << this->name << "  declarator type:  " << this->d_type << endl;
+    if(this->d_type == D_FUNC_DEF) {
+        this->para_def->print(temp_height + 1);
+    } else if(this->d_type == D_FUNC_CALL) {
+        this->para_call->print(temp_height + 1);
+    }
+}
+
+void IDList::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "ID List:" << endl;
+    for(int i = 0; i < this->id.size(); i++){
+        this->id[i]->print(temp_height + 1);
+    }
+}
+
+void ParaList::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "ParaList" << endl;
+    for(int i = 0; i < this->para.size(); i++){
+        this->para[i]->print(temp_height + 1);
+    }
+}
+
+void ParaItem::print(int temp_height) {
+    for(int i = 0; i < temp_height; i++)
+        cout << "|\t";
+    cout << "|---" << "ParaItem" << endl;
+    this->type->print(temp_height + 1);
+    this->var->print(temp_height + 1);
 }
 
 void Block::print(int temp_height) {
