@@ -52,9 +52,9 @@ IS          ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 [1-9]{D}*{IS}?	{ count(); text = yytext; return(CONSTANT_INT); /*10进制*/}
 L?'(\\.|[^\\'\n])+'		{ count(); return(CONSTANT); }
 
-{D}+{E}{FS}?				{ count(); return(CONSTANT_DOUBLE); /*浮点数*/}
-{D}*"."{D}+{E}?{FS}?		{ count(); return(CONSTANT_DOUBLE); /*浮点数*/}
-{D}+"."{D}*{E}?{FS}?		{ count(); return(CONSTANT_DOUBLE); /*浮点数*/}
+{D}+{E}{FS}?				{ count(); text = yytext; return(CONSTANT_DOUBLE); /*浮点数*/}
+{D}*"."{D}+{E}?{FS}?		{ count(); text = yytext; return(CONSTANT_DOUBLE); /*浮点数*/}
+{D}+"."{D}*{E}?{FS}?		{ count(); text = yytext; return(CONSTANT_DOUBLE); /*浮点数*/}
 0[xX]{H}+{P}{FS}?			{ count(); return(CONSTANT); }
 0[xX]{H}*"."{H}+{P}?{FS}?   { count(); return(CONSTANT); }
 0[xX]{H}+"."{H}*{P}?{FS}?   { count(); return(CONSTANT); }

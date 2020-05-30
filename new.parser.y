@@ -68,7 +68,7 @@ tree::Program* ast_root;
 
 %token ';' ',' ':' '=' '[' ']' '.' '&' '!' '~' '-' '+' '*' '/' '%' '<' '>' '^' '|' '?' '{' '}' '(' ')'
 
-%type <exp> primary_expression postfix_expression unary_expression unary_operator
+%type <exp> primary_expression postfix_expression unary_expression
 %type <exp> multiplicative_expression additive_expression shift_expression relational_expression equality_expression
 %type <exp> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <exp> assignment_expression
@@ -116,9 +116,17 @@ primary_expression:
 	}
 	|
 	TRUE {
+		Value* v = new Value();
+		v->base_type = V_BOOL;
+		v->val.bool_value = true;
+		$$ = new ConstantExp(v);
 	}
 	|
 	FALSE {
+		Value *v = new Value();
+		v->base_type = V_BOOL;
+		v->val.bool_value = false;
+		$$ = new ConstantExp(v);
 	}
 	| CONSTANT_INT {
 		int num = atoi(text.c_str());
@@ -128,8 +136,19 @@ primary_expression:
 		$$ = new ConstantExp(v);
 	}
 	| CONSTANT_DOUBLE {
+		double num = atof(text.c_str());
+		Value* v = new Value();
+		v->base_type = V_DOUBLE;
+		v->val.double_value = num;
+		$$ = new ConstantExp(v);
 	}
 	| '(' expression ')'{
+		if($2->exps.size() != 1){
+			cout << "Error, do not support comma expression in brackets." << endl;
+		} else {
+			$$ = $2->exps[0];
+			delete($2);
+		}
 	}
 	;
 
@@ -197,19 +216,11 @@ unary_expression:
 	| 	DEC_OP unary_expression{
 		$$ = new UnaryExp(OP_DEC, $2);
 	}
-	| 	unary_operator unary_expression{
+	| 	'-' unary_expression{
+		$$ = new UnaryExp(OP_MINUS, $2);
 	}
-	;
-
-/*单目运算符*/
-unary_operator:
-	'+' {
-	}
-	| '-' {
-	}
-	| '~' {
-	}
-	| '!' {
+	|	'!' unary_expression{
+		$$ = new UnaryExp(OP_NOT, $2);
 	}
 	;
 
@@ -601,6 +612,7 @@ designator:
 //声明
 statement:
 	labeled_statement {
+		$$ = $1;
 	}
 	| compound_statement {
 		$$ = $1;
@@ -633,6 +645,7 @@ labeled_statement:
 compound_statement:
 	'{' '}' {
 		// empty block
+		$$ = new Block();
 	}
 	| '{' block_item_list '}' {
 		$$ = $2;

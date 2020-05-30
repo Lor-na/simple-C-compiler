@@ -10,6 +10,12 @@
 + declarator的array形式，会出现a[][2][]这种形式，应该是非法的，语义检查可以做。
 + decItem，declarator和initializer的对应，语义检查可以做。
 
++ 剩下的没实现的接口
+    + += -= 这些花式赋值
+    + 结构体的 abstact declarator
+    + 数组的缺省初始化  a[10] = {1,}
+    + switch case的default
+
 # LLVM part
 
 # Semantic part

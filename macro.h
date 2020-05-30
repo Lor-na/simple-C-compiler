@@ -1,10 +1,8 @@
 #include <string>
 
 #define N_PROGRAM 0
-#define N_EXTDEC 1
 #define N_FUNC_DEC 3
 #define N_DEC 4
-#define N_TYPE_DEF 5
 #define N_DECLARATOR 6
 #define N_BLOCK 7
 #define N_DEC_ITEM 8
@@ -26,7 +24,6 @@
 #define N_ASSIGN_EXP 40
 #define N_BINARY_EXP 41
 #define N_UNARY_EXP 42
-#define N_PRIMARY_EXP 43
 #define N_VARIABLE_EXP 44
 #define N_CONSTANT_EXP 45
 #define N_ARRAY_EXP 46
@@ -40,7 +37,6 @@
 #define D_ID 0
 #define D_ARRAY 1
 #define D_FUNC_DEF 2
-#define D_FUNC_CALL 3
 #define D_FUNC_EMPTY 4
 
 // initializer
@@ -52,7 +48,6 @@
 #define T_DOUBLE 1
 #define T_CHAR 2
 #define T_BOOL 3
-#define T_STRING 4
 #define T_VOID 5
 
 // operator
@@ -69,9 +64,7 @@
 #define OP_GREATER_EQUAL 11
 #define OP_EQUAL 12
 #define OP_NOT_EQUAL 13
-#define OP_DOT 14
-#define OP_INDEX 15
-#define OP_NULL 16
+#define OP_NOT 14
 #define OP_EXCLUSIVE_OR 17
 #define OP_INC 18
 #define OP_DEC 19
@@ -81,7 +74,6 @@
 #define V_DOUBLE 1
 #define V_CHAR 2
 #define V_BOOL 3
-#define V_STRING 4
 
 // jump statement
 #define J_CONTINUE 0
