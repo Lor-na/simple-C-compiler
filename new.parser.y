@@ -9,13 +9,15 @@
 using namespace std;
 using namespace tree;
 
+extern "C" int yylex(void);
 extern char yytext[];
 extern int column;
 extern FILE * yyin;
 extern FILE * yyout;
 extern string text;
 
-int yylex(void);
+
+// int yylex(void);
 void yyerror(const char*); 
 
 tree::Program* ast_root;
@@ -68,7 +70,7 @@ tree::Program* ast_root;
 
 %token ';' ',' ':' '=' '[' ']' '.' '&' '!' '~' '-' '+' '*' '/' '%' '<' '>' '^' '|' '?' '{' '}' '(' ')'
 
-%type <exp> primary_expression postfix_expression unary_expression
+%type <exp> primary_expression postfix_expression unary_expression unary_operator
 %type <exp> multiplicative_expression additive_expression shift_expression relational_expression equality_expression
 %type <exp> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <exp> assignment_expression
@@ -108,7 +110,7 @@ program:
 	}
 	;
 
-/*基本表达式*/
+/*鍩烘湰琛ㄨ揪寮?/
 primary_expression: 
 	IDENTIFIER {
 		string id = text;
@@ -116,17 +118,9 @@ primary_expression:
 	}
 	|
 	TRUE {
-		Value* v = new Value();
-		v->base_type = V_BOOL;
-		v->val.bool_value = true;
-		$$ = new ConstantExp(v);
 	}
 	|
 	FALSE {
-		Value *v = new Value();
-		v->base_type = V_BOOL;
-		v->val.bool_value = false;
-		$$ = new ConstantExp(v);
 	}
 	| CONSTANT_INT {
 		int num = atoi(text.c_str());
@@ -136,23 +130,12 @@ primary_expression:
 		$$ = new ConstantExp(v);
 	}
 	| CONSTANT_DOUBLE {
-		double num = atof(text.c_str());
-		Value* v = new Value();
-		v->base_type = V_DOUBLE;
-		v->val.double_value = num;
-		$$ = new ConstantExp(v);
 	}
 	| '(' expression ')'{
-		if($2->exps.size() != 1){
-			cout << "Error, do not support comma expression in brackets." << endl;
-		} else {
-			$$ = $2->exps[0];
-			delete($2);
-		}
 	}
 	;
 
-/*后缀表达式*/
+/*鍚庣紑琛ㄨ揪寮?/
 postfix_expression:
 	primary_expression{
 		$$ = $1;
@@ -205,7 +188,7 @@ argument_expression_list:
 	}
 	;
 
-/*一元表达式*/
+/*涓€鍏冭〃杈惧紡*/
 unary_expression:
 	postfix_expression{
 		$$ = $1;
@@ -216,15 +199,23 @@ unary_expression:
 	| 	DEC_OP unary_expression{
 		$$ = new UnaryExp(OP_DEC, $2);
 	}
-	| 	'-' unary_expression{
-		$$ = new UnaryExp(OP_MINUS, $2);
-	}
-	|	'!' unary_expression{
-		$$ = new UnaryExp(OP_NOT, $2);
+	| 	unary_operator unary_expression{
 	}
 	;
 
-/*可乘表达式*/
+/*鍗曠洰杩愮畻绗?/
+unary_operator:
+	'+' {
+	}
+	| '-' {
+	}
+	| '~' {
+	}
+	| '!' {
+	}
+	;
+
+/*鍙箻琛ㄨ揪寮?/
 multiplicative_expression:
 	unary_expression {
 		$$ = $1;
@@ -240,7 +231,7 @@ multiplicative_expression:
 	}
 	;
 
-/*可加表达式*/
+/*鍙姞琛ㄨ揪寮?/
 additive_expression:
 	multiplicative_expression  {
 		$$ = $1;
@@ -253,7 +244,7 @@ additive_expression:
 	}
 	;
 
-/*左移右移*/
+/*宸︾Щ鍙崇Щ*/
 shift_expression:
 	additive_expression {
 		$$ = $1;
@@ -264,7 +255,7 @@ shift_expression:
 	}
 	;
 
-/*关系表达式*/
+/*鍏崇郴琛ㄨ揪寮?/
 relational_expression:
 	shift_expression {
 		$$ = $1;
@@ -283,7 +274,7 @@ relational_expression:
 	}
 	;
 
-/*相等表达式*/
+/*鐩哥瓑琛ㄨ揪寮?/
 equality_expression:
 	relational_expression {
 		$$ = $1;
@@ -305,7 +296,7 @@ and_expression:
 	}
 	;
 
-/*异或*/
+/*寮傛垨*/
 exclusive_or_expression:
 	and_expression {
 		$$ = $1;
@@ -315,7 +306,7 @@ exclusive_or_expression:
 	}
 	;
 
-/*或*/
+/*鎴?/
 inclusive_or_expression:
 	exclusive_or_expression {
 		$$ = $1;
@@ -325,7 +316,7 @@ inclusive_or_expression:
 	}
 	;
 
-/*and逻辑表达式*/
+/*and閫昏緫琛ㄨ揪寮?/
 logical_and_expression:
 	inclusive_or_expression {
 		$$ = $1;
@@ -335,7 +326,7 @@ logical_and_expression:
 	}
 	;
 
-/*or 逻辑表达式*/
+/*or 閫昏緫琛ㄨ揪寮?/
 logical_or_expression:
 	logical_and_expression {
 		$$ = $1;
@@ -345,7 +336,7 @@ logical_or_expression:
 	}
 	;
 
-/*赋值表达式*/
+/*璧嬪€艰〃杈惧紡*/
 assignment_expression:
 	logical_or_expression {
 		$$ = $1;
@@ -355,7 +346,7 @@ assignment_expression:
 	}
 	;
 
-/*赋值运算符*/
+/*璧嬪€艰繍绠楃*/
 assignment_operator:
 	'=' {
 	}
@@ -381,7 +372,7 @@ assignment_operator:
 	}
 	;
 
-/*表达式*/
+/*琛ㄨ揪寮?/
 expression:
 	assignment_expression {
 		$$ = new ExpStm();
@@ -426,7 +417,7 @@ init_declarator:
 	;
 
 
-/*类型说明符*/
+/*绫诲瀷璇存槑绗?/
 type_specifier:
 	VOID {
 		$$ = new Type(T_VOID);
@@ -500,7 +491,7 @@ declarator:
 	;
 
 
-//参数列表
+//鍙傛暟鍒楄〃
 parameter_list:
 	parameter_declaration {
 		$$ = new ParaList();
@@ -562,8 +553,7 @@ abstract_declarator:
 	}
 	;
 
-//初始化
-initializer:
+//鍒濆鍖?initializer:
 	assignment_expression {
 		$$ = new Initializer(I_EXP);
 		$$->assign_exp = $1;
@@ -609,10 +599,9 @@ designator:
 	}
 	;
 
-//声明
+//澹版槑
 statement:
 	labeled_statement {
-		$$ = $1;
 	}
 	| compound_statement {
 		$$ = $1;
@@ -631,7 +620,7 @@ statement:
 	}
 	;
 
-//标签声明
+//鏍囩澹版槑
 labeled_statement:
 	IDENTIFIER ':' statement {
 
@@ -641,11 +630,10 @@ labeled_statement:
 	}
 	;
 
-//复合语句
+//澶嶅悎璇彞
 compound_statement:
 	'{' '}' {
 		// empty block
-		$$ = new Block();
 	}
 	| '{' block_item_list '}' {
 		$$ = $2;
@@ -693,7 +681,7 @@ expression_statement:
 	}
 	;
 
-//条件语句
+//鏉′欢璇彞
 selection_statement:
 	IF '(' assignment_expression ')' statement %prec LOWER_THAN_ELSE {
 		$$ = new SelectStm($3, $5, nullptr);
@@ -706,7 +694,7 @@ selection_statement:
 	}
     ;
 
-//循环语句
+//寰幆璇彞
 iteration_statement:
 	WHILE '(' expression ')' statement {
 		$$ = new WhileStm($3, $5, false);
@@ -728,7 +716,7 @@ iteration_statement:
 	}
 	;
 
-//跳转指令
+//璺宠浆鎸囦护
 jump_statement:
 	GOTO IDENTIFIER ';' {
 	}
@@ -806,14 +794,17 @@ void yyerror(char const *s)
 }
 
 
-int main(int argc,char* argv[]) {
 
-	yyin = fopen(argv[1],"r");
-	
-	yyparse();
+int doparse(char *file) {
+    FILE *fp;
+    if ((fp = fopen(file, "r")) != NULL) {
+        yyin = fp;
+    }
+    do {
+        yyparse();
+    } while (!feof(yyin));
 
-	ast_root->print(0);
-
-	fclose(yyin);
-	return 0;
+    return 0;
 }
+
+
