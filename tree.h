@@ -1,6 +1,6 @@
 #ifndef TREE_H
 #define TREE_H
-// #include <llvm/IR/Value.h>
+#include <llvm/IR/Value.h>
 #include <string>
 #include <vector>
 #include <iostream>
@@ -60,7 +60,7 @@ public:
     Base(int type = 0) : node_type(type) {}
     virtual void print(int temp_height) {}
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) = 0;
+    virtual llvm::Value *codeGen(CodeGenContext *context) = 0;
     // virtual bool checkSemantics() = 0;
 };
 
@@ -68,7 +68,7 @@ class Stm : public Base {
 public:
     Stm(int type = 0) : Base(type) {}
     // virtual void print(int temp_height);
-    // virtual llvm::Value *codeGen(CodeGenContext *context) = 0;
+    virtual llvm::Value *codeGen(CodeGenContext *context) = 0;
 };
 
 class Exp : public Base {
@@ -77,7 +77,7 @@ public:
     Type *return_type = nullptr;
     Exp(int type = 0) : Base(type) {}
     // virtual void print(int temp_height);
-    // virtual llvm::Value *codeGen(CodeGenContext *context) = 0;
+    virtual llvm::Value *codeGen(CodeGenContext *context) = 0;
 };
 
 class Program : public Base {
@@ -91,7 +91,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -112,7 +112,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -128,7 +128,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -141,7 +141,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -159,7 +159,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -173,7 +173,7 @@ public:
     virtual void print(int temp_height);
     void setDType(int);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -213,7 +213,7 @@ public:
     void addID(Exp *);
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -227,7 +227,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -240,14 +240,14 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
 class Block : public Stm {
 public:
-    vector<Dec*> dec;   // maybe empty
-    vector<Stm*> stm;   // maybe empty, too.
+    vector<Dec*> dec;
+    vector<Stm*> stm;
 
     Block() : Stm(N_BLOCK) {}
     
@@ -256,7 +256,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -270,7 +270,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -284,7 +284,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -297,7 +297,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -310,7 +310,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -324,7 +324,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -340,7 +340,7 @@ public:
 
     bool initIsDec(); // to distinguish init(Base*), which can be Stm* or Dec*
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -355,7 +355,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -368,7 +368,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -381,7 +381,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -394,7 +394,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -405,7 +405,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -416,7 +416,7 @@ public:
 
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -430,7 +430,7 @@ public:
     void addIndex(Stm *);
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -444,7 +444,7 @@ public:
     void addArgu(Exp *);
     virtual void print(int temp_height);
 
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override;
 };
 
@@ -452,7 +452,7 @@ public:
 class Type : public Base {
 public:
     string name; // use what name to find this value, may be empty
-    int base_type; // 0: int 1: double 2: char 3: bool 5: array 6: record
+    int base_type; // 0: int 1: real 2: char 3: bool 5: array 6: record
     // int array_start = 0, array_end = 0; // the index for array. useless if the type is not an array
     // vector<Type *> child_type; // a list of the type of children, there is only one child if the type is array
     Type() : Base(N_TYPE) {}
@@ -460,8 +460,8 @@ public:
 
     virtual void print(int temp_height);
 
-    // llvm::Type *toLLVMType(CodeGenContext& context);
-    // virtual llvm::Value *codeGen(CodeGenContext *context) override;
+    llvm::Type *toLLVMType(CodeGenContext& context);
+    virtual llvm::Value *codeGen(CodeGenContext *context) override;
     // bool checkSemantics() override { return false; }
 };
 
@@ -479,7 +479,7 @@ public:
 
     void print(int temp_height);
 
-    // llvm::Value *codeGen(CodeGenContext *context);
+    llvm::Value *codeGen(CodeGenContext *context);
 };
 
 bool isStm(Base *);
