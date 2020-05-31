@@ -1,8 +1,16 @@
 %{
-#include "new.parser.tab.h"
+
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#include "macro.h"
+#include "parser.hpp"
+extern "C" int yylex();
+extern "C" void yyerror(const char* s);
+
 using namespace std;
 
 void count(void);
@@ -23,7 +31,7 @@ IS          ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 
 %%
 
-"/*"			{ comment();/*注释*/}
+"/*"			{ comment();/*娉ㄩ噴*/}
 "//"[^\n]*      { /* consume //-comment */ }
 
 "bool"			{ count(); return(BOOL);	}
@@ -47,20 +55,20 @@ IS          ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 
 {L}({L}|{D})* 	{count(); text = yytext; return(check_type());/*IDENTIFIER*/ }
 
-0[xX]{H}+{IS}?	{ count(); return(CONSTANT_INT); /*16进制*/}
-0[0-7]*{IS}?	{ count(); return(CONSTANT_INT); /*8进制*/}
-[1-9]{D}*{IS}?	{ count(); text = yytext; return(CONSTANT_INT); /*10进制*/}
+0[xX]{H}+{IS}?	{ count(); return(CONSTANT_INT); /*16杩涘埗*/}
+0[0-7]*{IS}?	{ count(); return(CONSTANT_INT); /*8杩涘埗*/}
+[1-9]{D}*{IS}?	{ count(); text = yytext; return(CONSTANT_INT); /*10杩涘埗*/}
 L?'(\\.|[^\\'\n])+'		{ count(); return(CONSTANT); }
 
-{D}+{E}{FS}?				{ count(); text = yytext; return(CONSTANT_DOUBLE); /*浮点数*/}
-{D}*"."{D}+{E}?{FS}?		{ count(); text = yytext; return(CONSTANT_DOUBLE); /*浮点数*/}
-{D}+"."{D}*{E}?{FS}?		{ count(); text = yytext; return(CONSTANT_DOUBLE); /*浮点数*/}
+{D}+{E}{FS}?				{ count(); return(CONSTANT_DOUBLE); /*娴偣鏁?/}
+{D}*"."{D}+{E}?{FS}?		{ count(); return(CONSTANT_DOUBLE); /*娴偣鏁?/}
+{D}+"."{D}*{E}?{FS}?		{ count(); return(CONSTANT_DOUBLE); /*娴偣鏁?/}
 0[xX]{H}+{P}{FS}?			{ count(); return(CONSTANT); }
 0[xX]{H}*"."{H}+{P}?{FS}?   { count(); return(CONSTANT); }
 0[xX]{H}+"."{H}*{P}?{FS}?   { count(); return(CONSTANT); }
 
 
-L?\"(\\.|[^\\"\n])*\"	{ count();text = yytext; return(STRING_LITERAL); /*字符串常量*/}
+L?\"(\\.|[^\\"\n])*\"	{ count();text = yytext; return(STRING_LITERAL); /*瀛楃涓插父閲?/}
 
 ">>="	{ count(); return(RIGHT_ASSIGN); }
 "<<="	{ count(); return(LEFT_ASSIGN); }
