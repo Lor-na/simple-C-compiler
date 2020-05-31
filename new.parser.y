@@ -15,6 +15,7 @@ extern int column;
 extern FILE * yyin;
 extern FILE * yyout;
 extern string text;
+extern int myyylineno;
 
 
 // int yylex(void);
@@ -56,7 +57,7 @@ tree::Program* ast_root;
 	Value* value;
 }
 
-%token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF CONSTANT_INT CONSTANT_DOUBLE
+%token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF CONSTANT_INT CONSTANT_DOUBLE CONSTANT_CHAR
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -70,7 +71,7 @@ tree::Program* ast_root;
 
 %token ';' ',' ':' '=' '[' ']' '.' '&' '!' '~' '-' '+' '*' '/' '%' '<' '>' '^' '|' '?' '{' '}' '(' ')'
 
-%type <exp> primary_expression postfix_expression unary_expression unary_operator
+%type <exp> primary_expression postfix_expression unary_expression
 %type <exp> multiplicative_expression additive_expression shift_expression relational_expression equality_expression
 %type <exp> and_expression exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression
 %type <exp> assignment_expression
@@ -110,32 +111,58 @@ program:
 	}
 	;
 
-/*鍩烘湰琛ㄨ揪寮?/
+/*基本表达式*/
 primary_expression: 
 	IDENTIFIER {
 		string id = text;
-		$$ = new VariableExp(id);
+		$$ = new VariableExp(id, myyylineno);
 	}
 	|
 	TRUE {
+		Value* v = new Value();
+		v->base_type = V_BOOL;
+		v->val.bool_value = true;
+		$$ = new ConstantExp(v, myyylineno);
 	}
 	|
 	FALSE {
+		Value *v = new Value();
+		v->base_type = V_BOOL;
+		v->val.bool_value = false;
+		$$ = new ConstantExp(v, myyylineno);
 	}
 	| CONSTANT_INT {
 		int num = atoi(text.c_str());
 		Value* v = new Value();
 		v->base_type = V_INT;
 		v->val.integer_value = num;
-		$$ = new ConstantExp(v);
+		$$ = new ConstantExp(v, myyylineno);
 	}
 	| CONSTANT_DOUBLE {
+		double num = atof(text.c_str());
+		Value* v = new Value();
+		v->base_type = V_DOUBLE;
+		v->val.double_value = num;
+		$$ = new ConstantExp(v, myyylineno);
+	}
+	| CONSTANT_CHAR {
+		char c = text.at(0);
+		Value* v = new Value();
+		v->base_type = V_CHAR;
+		v->val.char_value = c;
+		$$ = new ConstantExp(v, myyylineno);
 	}
 	| '(' expression ')'{
+		if($2->exps.size() != 1){
+			cout << "Error, do not support comma expression in brackets." << endl;
+		} else {
+			$$ = $2->exps[0];
+			delete($2);
+		}
 	}
 	;
 
-/*鍚庣紑琛ㄨ揪寮?/
+/*后缀表达式*/
 postfix_expression:
 	primary_expression{
 		$$ = $1;
@@ -143,7 +170,7 @@ postfix_expression:
 	| 	postfix_expression '[' expression ']'{
 		// array call
 		if($1->node_type == N_VARIABLE_EXP){
-			$$ = new ArrayExp(((VariableExp *)$1)->name);
+			$$ = new ArrayExp(((VariableExp *)$1)->name, myyylineno);
 			delete($1);
 		} else {
 			$$ = $1;
@@ -153,7 +180,7 @@ postfix_expression:
 	| 	postfix_expression '(' ')'{
 		// may be function call
 		if($1->node_type == N_VARIABLE_EXP){
-			$$ = new FuncExp(((VariableExp *)$1)->name);
+			$$ = new FuncExp(((VariableExp *)$1)->name, myyylineno);
 			delete($1);
 		} else {
 			cout << "Error, positfix_expression (), can't be nested" << endl;
@@ -170,16 +197,16 @@ postfix_expression:
 		}
 	}
 	| 	postfix_expression INC_OP{
-		$$ = new UnaryExp(OP_INC, $1);
+		$$ = new UnaryExp(OP_INC, $1, myyylineno);
 	}
 	| 	postfix_expression DEC_OP{
-		$$ = new UnaryExp(OP_DEC, $1);
+		$$ = new UnaryExp(OP_DEC, $1, myyylineno);
 	}
 	;
 
 argument_expression_list:
 	assignment_expression{
-		$$ = new FuncExp("placement");
+		$$ = new FuncExp("placement", myyylineno);
 		$$->addArgu($1);
 	}
 	| 	argument_expression_list ',' assignment_expression {
@@ -188,63 +215,55 @@ argument_expression_list:
 	}
 	;
 
-/*涓€鍏冭〃杈惧紡*/
+/*一元表达式*/
 unary_expression:
 	postfix_expression{
 		$$ = $1;
 	}
 	| 	INC_OP unary_expression{
-		$$ = new UnaryExp(OP_INC, $2);
+		$$ = new UnaryExp(OP_INC, $2, myyylineno);
 	}
 	| 	DEC_OP unary_expression{
-		$$ = new UnaryExp(OP_DEC, $2);
+		$$ = new UnaryExp(OP_DEC, $2, myyylineno);
 	}
-	| 	unary_operator unary_expression{
+	| 	'-' unary_expression{
+		$$ = new UnaryExp(OP_MINUS, $2, myyylineno);
 	}
-	;
-
-/*鍗曠洰杩愮畻绗?/
-unary_operator:
-	'+' {
-	}
-	| '-' {
-	}
-	| '~' {
-	}
-	| '!' {
+	|	'!' unary_expression{
+		$$ = new UnaryExp(OP_NOT, $2, myyylineno);
 	}
 	;
 
-/*鍙箻琛ㄨ揪寮?/
+/*可乘表达式*/
 multiplicative_expression:
 	unary_expression {
 		$$ = $1;
 	}
 	| multiplicative_expression '*' unary_expression {
-		$$ = new BinaryExp(OP_MUL, $1, $3);
+		$$ = new BinaryExp(OP_MUL, $1, $3, myyylineno);
 	}
 	| multiplicative_expression '/' unary_expression {
-		$$ = new BinaryExp(OP_DIV, $1, $3);
+		$$ = new BinaryExp(OP_DIV, $1, $3, myyylineno);
 	}
 	| multiplicative_expression '%' unary_expression {
-		$$ = new BinaryExp(OP_MOD, $1, $3);
+		$$ = new BinaryExp(OP_MOD, $1, $3, myyylineno);
 	}
 	;
 
-/*鍙姞琛ㄨ揪寮?/
+/*可加表达式*/
 additive_expression:
 	multiplicative_expression  {
 		$$ = $1;
 	}
 	| additive_expression '+' multiplicative_expression {
-		$$ = new BinaryExp(OP_ADD, $1, $3);
+		$$ = new BinaryExp(OP_ADD, $1, $3, myyylineno);
 	}
 	| additive_expression '-' multiplicative_expression {
-		$$ = new BinaryExp(OP_MINUS, $1, $3);
+		$$ = new BinaryExp(OP_MINUS, $1, $3, myyylineno);
 	}
 	;
 
-/*宸︾Щ鍙崇Щ*/
+/*左移右移*/
 shift_expression:
 	additive_expression {
 		$$ = $1;
@@ -255,35 +274,35 @@ shift_expression:
 	}
 	;
 
-/*鍏崇郴琛ㄨ揪寮?/
+/*关系表达式*/
 relational_expression:
 	shift_expression {
 		$$ = $1;
 	}
 	| relational_expression '<' shift_expression {
-		$$ = new BinaryExp(OP_LESS, $1, $3);
+		$$ = new BinaryExp(OP_LESS, $1, $3, myyylineno);
 	}
 	| relational_expression '>' shift_expression {
-		$$ = new BinaryExp(OP_GREATER, $1, $3);
+		$$ = new BinaryExp(OP_GREATER, $1, $3, myyylineno);
 	}
 	| relational_expression LE_OP shift_expression {
-		$$ = new BinaryExp(OP_LESS_EQUAL, $1, $3);
+		$$ = new BinaryExp(OP_LESS_EQUAL, $1, $3, myyylineno);
 	}
 	| relational_expression GE_OP shift_expression {
-		$$ = new BinaryExp(OP_GREATER_EQUAL, $1, $3);
+		$$ = new BinaryExp(OP_GREATER_EQUAL, $1, $3, myyylineno);
 	}
 	;
 
-/*鐩哥瓑琛ㄨ揪寮?/
+/*相等表达式*/
 equality_expression:
 	relational_expression {
 		$$ = $1;
 	}
 	| equality_expression EQ_OP relational_expression {
-		$$ = new BinaryExp(OP_EQUAL, $1, $3);
+		$$ = new BinaryExp(OP_EQUAL, $1, $3, myyylineno);
 	}
 	| equality_expression NE_OP relational_expression {
-		$$ = new BinaryExp(OP_NOT_EQUAL, $1, $3);
+		$$ = new BinaryExp(OP_NOT_EQUAL, $1, $3, myyylineno);
 	}
 	;
 
@@ -292,61 +311,61 @@ and_expression:
 		$$ = $1;
 	}
 	| and_expression '&' equality_expression {
-		$$ = new BinaryExp(OP_AND, $1, $3);
+		$$ = new BinaryExp(OP_AND, $1, $3, myyylineno);
 	}
 	;
 
-/*寮傛垨*/
+/*异或*/
 exclusive_or_expression:
 	and_expression {
 		$$ = $1;
 	}
 	| exclusive_or_expression '^' and_expression {
-		$$ = new BinaryExp(OP_EXCLUSIVE_OR, $1, $3);
+		$$ = new BinaryExp(OP_EXCLUSIVE_OR, $1, $3, myyylineno);
 	}
 	;
 
-/*鎴?/
+/*或*/
 inclusive_or_expression:
 	exclusive_or_expression {
 		$$ = $1;
 	}
 	| inclusive_or_expression '|' exclusive_or_expression {
-		$$ = new BinaryExp(OP_OR, $1, $3);
+		$$ = new BinaryExp(OP_OR, $1, $3, myyylineno);
 	}
 	;
 
-/*and閫昏緫琛ㄨ揪寮?/
+/*and逻辑表达式*/
 logical_and_expression:
 	inclusive_or_expression {
 		$$ = $1;
 	}
 	| logical_and_expression AND_OP inclusive_or_expression {
-		$$ = new BinaryExp(OP_AND, $1, $3);
+		$$ = new BinaryExp(OP_AND, $1, $3, myyylineno);
 	}
 	;
 
-/*or 閫昏緫琛ㄨ揪寮?/
+/*or 逻辑表达式*/
 logical_or_expression:
 	logical_and_expression {
 		$$ = $1;
 	}
 	| logical_or_expression OR_OP logical_and_expression {
-		$$ = new BinaryExp(OP_OR, $1, $3);
+		$$ = new BinaryExp(OP_OR, $1, $3, myyylineno);
 	}
 	;
 
-/*璧嬪€艰〃杈惧紡*/
+/*赋值表达式*/
 assignment_expression:
 	logical_or_expression {
 		$$ = $1;
 	}
 	| unary_expression assignment_operator assignment_expression {
-		$$ = new AssignExp($1, $3);
+		$$ = new AssignExp($1, $3, myyylineno);
 	}
 	;
 
-/*璧嬪€艰繍绠楃*/
+/*赋值运算符*/
 assignment_operator:
 	'=' {
 	}
@@ -372,10 +391,10 @@ assignment_operator:
 	}
 	;
 
-/*琛ㄨ揪寮?/
+/*表达式*/
 expression:
 	assignment_expression {
-		$$ = new ExpStm();
+		$$ = new ExpStm(myyylineno);
 		$$->addExp($1);
 	}
 	| expression ',' assignment_expression {
@@ -398,7 +417,7 @@ declaration:
 
 init_declarator_list:
 	init_declarator {
-		$$ = new Dec();
+		$$ = new Dec(myyylineno);
 		$$->addDecItem($1);
 	}
 	| init_declarator_list ',' init_declarator {
@@ -409,30 +428,30 @@ init_declarator_list:
 
 init_declarator:
 	declarator {
-		$$ = new DecItem($1, nullptr);
+		$$ = new DecItem($1, nullptr, myyylineno);
 	}
 	| declarator '=' initializer {
-		$$ = new DecItem($1, $3);
+		$$ = new DecItem($1, $3, myyylineno);
 	}
 	;
 
 
-/*绫诲瀷璇存槑绗?/
+/*类型说明符*/
 type_specifier:
 	VOID {
-		$$ = new Type(T_VOID);
+		$$ = new Type(T_VOID, myyylineno);
 	}
 	| CHAR {
-		$$ = new Type(T_CHAR);
+		$$ = new Type(T_CHAR, myyylineno);
 	}
 	| INT {
-		$$ = new Type(T_INTEGER);
+		$$ = new Type(T_INTEGER, myyylineno);
 	}
 	| DOUBLE {
-		$$ = new Type(T_DOUBLE);
+		$$ = new Type(T_DOUBLE, myyylineno);
 	}
 	| BOOL {
-		$$ = new Type(T_BOOL);
+		$$ = new Type(T_BOOL, myyylineno);
 	}
 	;
 
@@ -442,14 +461,14 @@ declarator:
 	IDENTIFIER {
 		// variable
 		string id = text;
-		$$ = new Declarator(D_ID, id);
+		$$ = new Declarator(D_ID, id, myyylineno);
 	}
 	| '(' declarator ')' {
 	}
 	| declarator '[' assignment_expression ']' {
 		// array of fixed size
 		if($1->d_type == D_ID){
-			$$ = new DeclaratorArray(D_ARRAY, $1->name);
+			$$ = new DeclaratorArray(D_ARRAY, $1->name, myyylineno);
 			delete($1);
 		} else {
 			$$ = $1;
@@ -461,7 +480,7 @@ declarator:
 	| declarator '[' ']' {
 		// array of unfixed size : defined by initializer
 		if($1->d_type == D_ID){
-			$$ = new DeclaratorArray(D_ARRAY, $1->name);
+			$$ = new DeclaratorArray(D_ARRAY, $1->name, myyylineno);
 			delete($1);
 		} else {
 			$$ = $1;
@@ -470,7 +489,7 @@ declarator:
 	}
 	| declarator '(' parameter_list ')' {
 		if($1->d_type == D_ID) {
-			$$ = new DeclaratorFunc(D_FUNC_DEF, $1->name);
+			$$ = new DeclaratorFunc(D_FUNC_DEF, $1->name, myyylineno);
 			delete($1);
 		} else {
 			cout << "Error node type of declarator () " << endl;
@@ -482,7 +501,7 @@ declarator:
 	}
 	| declarator '(' ')' {
 		if($1->d_type == D_ID) {
-			$$ = new DeclaratorFunc(D_FUNC_EMPTY, $1->name);
+			$$ = new DeclaratorFunc(D_FUNC_EMPTY, $1->name, myyylineno);
 			delete($1);
 		} else {
 			cout << "Error node type of declarator () " << endl;
@@ -491,10 +510,10 @@ declarator:
 	;
 
 
-//鍙傛暟鍒楄〃
+//参数列表
 parameter_list:
 	parameter_declaration {
-		$$ = new ParaList();
+		$$ = new ParaList(myyylineno);
 		$$->addPara($1);
 	}
 	| parameter_list ',' parameter_declaration {
@@ -505,7 +524,7 @@ parameter_list:
 
 parameter_declaration:
 	type_specifier declarator {
-		$$ = new ParaItem($1, $2);
+		$$ = new ParaItem($1, $2, myyylineno);
 	}
 	| type_specifier abstract_declarator {
 	}
@@ -516,13 +535,13 @@ parameter_declaration:
 identifier_list:
 	IDENTIFIER {
 		string id = text;
-		VariableExp* e = new VariableExp(id);
-		$$ = new IDList();
+		VariableExp* e = new VariableExp(id, myyylineno);
+		$$ = new IDList(myyylineno);
 		$$->addID(e);
 	}
 	| identifier_list ',' IDENTIFIER {
 		string id = text;
-		VariableExp* e = new VariableExp(id);
+		VariableExp* e = new VariableExp(id, myyylineno);
 		$$ = $1;
 		$$->addID(e);
 	}
@@ -553,9 +572,10 @@ abstract_declarator:
 	}
 	;
 
-//鍒濆鍖?initializer:
+//初始化
+initializer:
 	assignment_expression {
-		$$ = new Initializer(I_EXP);
+		$$ = new Initializer(I_EXP, myyylineno);
 		$$->assign_exp = $1;
 	}
 	| '{' initializer_list '}' {
@@ -567,7 +587,7 @@ abstract_declarator:
 
 initializer_list:
 	initializer {
-		$$ = new Initializer(I_ARRAY);
+		$$ = new Initializer(I_ARRAY, myyylineno);
 		$$->addArrayItem($1);
 	}
 	| designation initializer {
@@ -599,9 +619,10 @@ designator:
 	}
 	;
 
-//澹版槑
+//声明
 statement:
 	labeled_statement {
+		$$ = $1;
 	}
 	| compound_statement {
 		$$ = $1;
@@ -620,20 +641,21 @@ statement:
 	}
 	;
 
-//鏍囩澹版槑
+//标签声明
 labeled_statement:
 	IDENTIFIER ':' statement {
 
 	}
 	| CASE logical_or_expression ':' statement {
-		$$ = new CaseStm($2, $4);
+		$$ = new CaseStm($2, $4, myyylineno);
 	}
 	;
 
-//澶嶅悎璇彞
+//复合语句
 compound_statement:
 	'{' '}' {
 		// empty block
+		$$ = new Block(myyylineno);
 	}
 	| '{' block_item_list '}' {
 		$$ = $2;
@@ -642,7 +664,7 @@ compound_statement:
 
 block_item_list:
 	block_item {
-		$$ = new Block();
+		$$ = new Block(myyylineno);
 		if($1->node_type == N_DEC){
 			$$->addDec((Dec *)$1);
 		} else if(isStm($1)) {
@@ -674,70 +696,70 @@ block_item:
 
 expression_statement:
 	';' {
-		$$ = new ExpStm();
+		$$ = new ExpStm(myyylineno);
 	}
 	| expression ';' {
 		$$ = $1;
 	}
 	;
 
-//鏉′欢璇彞
+//条件语句
 selection_statement:
 	IF '(' assignment_expression ')' statement %prec LOWER_THAN_ELSE {
-		$$ = new SelectStm($3, $5, nullptr);
+		$$ = new SelectStm($3, $5, nullptr,myyylineno);
 	}
     | IF '(' assignment_expression ')' statement ELSE statement {
-		$$ = new SelectStm($3, $5, $7);
+		$$ = new SelectStm($3, $5, $7, myyylineno);
 	}
     | SWITCH '(' assignment_expression ')' statement {
-		$$ = new SwitchStm($3, $5);
+		$$ = new SwitchStm($3, $5, myyylineno);
 	}
     ;
 
-//寰幆璇彞
+//循环语句
 iteration_statement:
 	WHILE '(' expression ')' statement {
-		$$ = new WhileStm($3, $5, false);
+		$$ = new WhileStm($3, $5, false, myyylineno);
 	}
 	| DO statement WHILE '(' expression ')' ';' {
-		$$ = new WhileStm($5, $2, true);
+		$$ = new WhileStm($5, $2, true, myyylineno);
 	}
 	| FOR '(' expression_statement expression_statement ')' statement {
-		$$ = new ForStm($3, $4, nullptr, $6);
+		$$ = new ForStm($3, $4, nullptr, $6, myyylineno);
 	}
 	| FOR '(' expression_statement expression_statement expression ')' statement {
-		$$ = new ForStm($3, $4, $5, $7);
+		$$ = new ForStm($3, $4, $5, $7, myyylineno);
 	}
 	| FOR '(' declaration expression_statement ')' statement {
-		$$ = new ForStm($3, $4, nullptr, $6);
+		$$ = new ForStm($3, $4, nullptr, $6, myyylineno);
 	}
 	| FOR '(' declaration expression_statement expression ')' statement {
-		$$ = new ForStm($3, $4, $5, $7);
+		$$ = new ForStm($3, $4, $5, $7, myyylineno);
 	}
 	;
 
-//璺宠浆鎸囦护
+//跳转指令
 jump_statement:
 	GOTO IDENTIFIER ';' {
 	}
 	| CONTINUE ';' {
-		$$ = new JumpStm(J_CONTINUE);
+		$$ = new JumpStm(J_CONTINUE, myyylineno);
 	}
 	| BREAK ';' {
-		$$ = new JumpStm(J_BREAK);
+		$$ = new JumpStm(J_BREAK, myyylineno);
 	}
 	| RETURN ';' {
-		$$ = new JumpStm(J_RETURN);
+		$$ = new JumpStm(J_RETURN, myyylineno);
 	}
 	| RETURN expression ';' {
-		$$ = new JumpStm(J_RETURN);
+		$$ = new JumpStm(J_RETURN, myyylineno);
 		$$->setReturnVal($2);
 	}
 	;
 
 translation_unit:
 	external_declaration {
-		$$ = new Program("Program");
+		$$ = new Program("Program", myyylineno);
 		if($1->node_type == N_FUNC_DEC){
 			$$->addFunc((FuncDec *)$1);
 		} else if($1->node_type == N_DEC) {
@@ -773,7 +795,7 @@ function_definition:
 	}
 	| type_specifier declarator compound_statement {
 		// maybe check declarator
-		$$ = new FuncDec($2->name, $1, $2, $3);
+		$$ = new FuncDec($2->name, $1, $2, $3, myyylineno);
 	}
 	;
 

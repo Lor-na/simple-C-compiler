@@ -18,6 +18,7 @@ void comment();
 int check_type();
 int column = 0;
 string text;
+int myyylineno = 0;
 
 %}
 
@@ -59,6 +60,7 @@ IS          ((u|U)|(u|U)?(l|L|ll|LL)|(l|L|ll|LL)(u|U))
 0[0-7]*{IS}?	{ count(); return(CONSTANT_INT); /*8杩涘埗*/}
 [1-9]{D}*{IS}?	{ count(); text = yytext; return(CONSTANT_INT); /*10杩涘埗*/}
 L?'(\\.|[^\\'\n])+'		{ count(); return(CONSTANT); }
+L?'(\\.|[^\\'])+'	{ count(); text = yytext; return(CONSTANT_CHAR); }
 
 {D}+{E}{FS}?				{ count(); return(CONSTANT_DOUBLE); /*娴偣鏁?/}
 {D}*"."{D}+{E}?{FS}?		{ count(); return(CONSTANT_DOUBLE); /*娴偣鏁?/}
@@ -116,7 +118,9 @@ L?\"(\\.|[^\\"\n])*\"	{ count();text = yytext; return(STRING_LITERAL); /*瀛楃�
 "("		{ count(); return('('); }
 ")"		{ count(); return(')'); }
 
-[\t\v\n\f ]		{ count();}
+"\n"    { count(); myyylineno = myyylineno + 1;}
+
+[\t\v\f ]		{ count();}
 .			{ /* Add code to complain about unmatched characters */ }
 
 %%
