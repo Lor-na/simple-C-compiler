@@ -10,11 +10,21 @@ extern tree::Program* ast_root;
 
 int main(int argc,char* argv[]) {
 
+
+	// parsing and generating AST
+	std::cout << "start parsing" << std::endl;
 	doparse(argv[1]);
 	std::cout << "parsing done" << std::endl;
 
+	// AST visualization
 	ast_root->print(0);
 
+	// semantic analysis
+	bool is_legal = ast_root->checkSemantics();
+	if(!is_legal)
+		return 0;
+
+	// generating code
 	InitializeNativeTargetAsmPrinter();
 	InitializeNativeTargetAsmParser();
 	InitializeNativeTarget();
